@@ -36,8 +36,11 @@ local t = Def.ActorFrame{
 
 			-- Artist Label
 			LoadFont("_miso")..{
-				Text="ARTIST",
-				InitCommand=cmd(horizalign, right; y, -12),
+				InitCommand=function(self)
+					local text = GAMESTATE:IsCourseMode() and "NumSongs" or "Artist"
+					self:settext( THEME:GetString("SongDescription", text) )
+						:horizalign(right):y(-12)
+				end,
 				OnCommand=cmd(diffuse,color("0.5,0.5,0.5,1"))
 			},
 
@@ -45,12 +48,20 @@ local t = Def.ActorFrame{
 			LoadFont("_miso")..{
 				InitCommand=cmd(horizalign,left; xy, 5,-12; maxwidth,WideScale(225,260) ),
 				SetCommand=function(self)
-					local song = GAMESTATE:GetCurrentSong()
-
-					if song and song:GetDisplayArtist() then
-						self:settext(song:GetDisplayArtist())
+					if GAMESTATE:IsCourseMode() then
+						local course = GAMESTATE:GetCurrentCourse()
+						if course then
+							self:settext( #course:GetCourseEntries() )
+						else
+							self:settext("")
+						end
 					else
-						self:settext("")
+						local song = GAMESTATE:GetCurrentSong()
+						if song and song:GetDisplayArtist() then
+							self:settext( song:GetDisplayArtist() )
+						else
+							self:settext("")
+						end
 					end
 				end
 			},
@@ -62,7 +73,7 @@ local t = Def.ActorFrame{
 				InitCommand=cmd(horizalign, right; NoStroke; y, 8),
 				SetCommand=function(self)
 					self:diffuse(0.5,0.5,0.5,1)
-					self:settext("BPM")
+					self:settext( THEME:GetString("SongDescription", "BPM")  )
 				end
 			},
 
@@ -88,7 +99,7 @@ local t = Def.ActorFrame{
 				SetCommand=function(self)
 					local song = GAMESTATE:GetCurrentSong()
 					self:diffuse(0.5,0.5,0.5,1)
-					self:settext("LENGTH")
+					self:settext( THEME:GetString("SongDescription", "Length") )
 				end
 			},
 
@@ -117,7 +128,7 @@ local t = Def.ActorFrame{
 					if duration then
 						if duration == 105.0 then
 							-- r21 lol
-							self:settext("not 1:45")
+							self:settext( THEME:GetString("SongDescription", "r21") )
 						else
 							local finalText = SecondsToMSSMsMs(duration)
 							self:settext( string.sub(finalText, 0, finalText:len()-3) )
@@ -162,9 +173,9 @@ local t = Def.ActorFrame{
 
 					if song then
 						if song:IsLong() then
-							self:settext("COUNTS AS 2 ROUNDS")
+							self:settext( THEME:GetString("SongDescription", "IsLong") )
 						elseif song:IsMarathon() then
-							self:settext("COUNTS AS 3 ROUNDS")
+							self:settext( THEME:GetString("SongDescription", "IsMarathon")  )
 						else
 							self:settext("")
 						end

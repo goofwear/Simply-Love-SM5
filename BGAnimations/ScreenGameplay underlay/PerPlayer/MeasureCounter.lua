@@ -1,15 +1,19 @@
 local player = ...
 local pn = ToEnumShortString(player)
 local mods = SL[pn].ActiveModifiers
-local streams = SL[pn].Streams
+
 local PlayerState = GAMESTATE:GetPlayerState(player)
+local streams, current_measure, previous_measure, MeasureCounterBMT
+local current_count, stream_index, current_stream_length
 
-local current_measure, previous_measure
-local MeasureCounterBMT
-
-local current_count = 0
-local stream_index = 1
-local current_stream_length = 0
+-- We'll want to reset each of these values for each new song in the case of CourseMode
+local function InitializeMeasureCounter()
+	streams = SL[pn].Streams
+	current_count = 0
+	stream_index = 1
+	current_stream_length = 0
+	previous_measure = nil
+end
 
 local function Update(self, delta)
 
@@ -26,7 +30,7 @@ local function Update(self, delta)
 
 		previous_measure = current_measure
 
-		-- if the current measure is within the of the current stream
+		-- if the current measure is within the scope of the current stream
 		if streams.Measures[stream_index]
 		and current_measure >= streams.Measures[stream_index].streamStart
 		and current_measure <= streams.Measures[stream_index].streamEnd then
@@ -55,6 +59,9 @@ if mods.MeasureCounter and mods.MeasureCounter ~= "None" then
 		InitCommand=function(self)
 			self:queuecommand("SetUpdate")
 		end,
+		CurrentSongChangedMessageCommand=function(self)
+			InitializeMeasureCounter()
+		end,
 		SetUpdateCommand=function(self)
 			self:SetUpdateFunction( Update )
 		end
@@ -65,13 +72,16 @@ if mods.MeasureCounter and mods.MeasureCounter ~= "None" then
 		InitCommand=function(self)
 			MeasureCounterBMT = self
 
-			local style = GAMESTATE:GetCurrentStyle(player)
-			local width = style:GetWidth(player)
-			local NumColumns = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
+			self:zoom(0.35):shadowlength(1)
 
-			self:zoom(0.35)
-				:xy( GetNotefieldX(player) - (width/NumColumns), _screen.cy )
-				:shadowlength(1)
+			if mods.MeasureCounterPosition == "Center" then
+				self:xy( GetNotefieldX(player), _screen.cy )
+			else
+				local width = GAMESTATE:GetCurrentStyle(player):GetWidth(player)
+				local NumColumns = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
+
+				self:xy( GetNotefieldX(player) - (width/NumColumns), _screen.cy )
+			end
 		end
 	}
 

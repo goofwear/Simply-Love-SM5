@@ -20,6 +20,17 @@ end
 ------------------------------------------------------------------------------
 -- Misc Lua functions that didn't fit anywhere else...
 
+-- helper function used to detmerine which timing_window a given offset belongs to
+function DetermineTimingWindow(offset)
+	for i=1,5 do
+		if math.abs(offset) < SL.Preferences[SL.Global.GameMode]["TimingWindowSecondsW"..i] then
+			return i
+		end
+	end
+	return 5
+end
+
+
 function GetCredits()
 	local coins = GAMESTATE:GetCoins()
 	local coinsPerCredit = PREFSMAN:GetPreference('CoinsPerCredit')
@@ -125,8 +136,8 @@ function SetGameModePreferences()
  		SL.Global.ActiveModifiers.DecentsWayOffs = "On"
 	end
 
-	-- Now that we've set the SL table for DecentsWayOffs appropriately
-	-- apply use that to apply the mods appropriately.
+	-- Now that we've set the SL table for DecentsWayOffs appropriately,
+	-- use it to apply DecentsWayOffs as a mod.
 	for player in ivalues(GAMESTATE:GetHumanPlayers()) do
 		local OptRow = CustomOptionRow( "DecentsWayOffs" )
 		OptRow:LoadSelections( OptRow.Choices, player )
@@ -154,17 +165,19 @@ function GetPlayerOptionsLineNames()
 end
 
 function GetPlayerOptions2LineNames()
-	local mods = "Turn,Scroll,7,8,9,10,11,12,13,Attacks,Hide,ReceptorArrowsPosition,TargetStatus,TargetBar,GameplayExtras,MeasureCounter,DecentsWayOffs,Vocalization,ScreenAfterPlayerOptions2"
+	local mods = "Turn,Scroll,7,8,9,10,11,12,13,Attacks,Hide,ReceptorArrowsPosition,LifeMeterType,TargetStatus,TargetBar,GameplayExtras,MeasureCounterPosition,MeasureCounter,DecentsWayOffs,Vocalization,ScreenAfterPlayerOptions2"
 
-
-	if SL.Global.GameMode == "Competitive" or SL.Global.GameMode == "Casual" then
+	-- remove ReceptorArrowsPosition if GameMode isn't StomperZ
+	if SL.Global.GameMode ~= "StomperZ" then
 		mods = mods:gsub("ReceptorArrowsPosition", "")
 	end
 
+	-- remove DecentsWayOffs and LifeMeterType if GameMode is StomperZ
 	if SL.Global.GameMode == "StomperZ" then
-		mods = mods:gsub("DecentsWayOffs,", "")
+		mods = mods:gsub("DecentsWayOffs,", ""):gsub("LifeMeterType", "")
 	end
 
+	-- remove TargetStatus and TargetBar (IIDX pacemaker) if style is double
 	if SL.Global.Gamestate.Style == "double" then
 		mods = mods:gsub("TargetStatus,TargetBar,", "")
 	end

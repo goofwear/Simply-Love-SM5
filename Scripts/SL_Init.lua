@@ -18,10 +18,12 @@ local PlayerDefaults = {
 				HideScore = false,
 				ColumnFlashOnMiss = false,
 				SubtractiveScoring = false,
+				MeasureCounterPosition = "Left",
 				MeasureCounter = "None",
 				TargetStatus="Disabled",
 				TargetBar=11,
 				ReceptorArrowsPosition="StomperZ",
+				LifeMeterType="Standard",
 			}
 			self.Streams = {
 				SongDir = nil,
